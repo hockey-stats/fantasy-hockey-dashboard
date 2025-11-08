@@ -1,0 +1,5 @@
+pyhockey==0.1.9
+yahoo_fantasy_api
+yahoo_oauth
+polars==1.29.0
+unidecode

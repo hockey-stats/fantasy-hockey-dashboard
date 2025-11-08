@@ -1,0 +1,50 @@
+name: Update Data for Free Agency Dashboard
+on:
+  workflow_dispatch:
+  push:
+    branches:
+     - 'main'
+  schedule: 
+    - cron: 0 7 * * *
+
+env:
+  DATA_ARTIFACT_NAME: 'nhl-dashboard-fa-data'
+
+jobs:
+  get-data:
+    runs-on: ubuntu-latest
+    ###
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      #
+      - name: Decrypt oauth key
+        env:
+          SECRET_PASSPHRASE: ${{ secrets.YAHOO_OAUTH_DECRYPT_KEY }}
+        run: |
+          gpg --quiet --batch --yes --decrypt --passphrase="$SECRET_PASSPHRASE" \
+          --output ./oauth.json oauth.json.gpg;
+          ls
+      #
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      #
+      - name: Install Requirements
+        run: pip install -r requirements.txt
+      #
+      - name: Gather Data
+        env: 
+          PYTHONPATH: ${{ github.workspace }}
+        run: python3 update_data.py
+      #
+      - name: Save Output as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DATA_ARTIFACT_NAME }}
+          path: ./*csv
+          retention-days: 2
+          overwrite: true
+    ###
