@@ -88,10 +88,10 @@ def collect_goalie_stats(player_ids: list[str], league: yfa.League) -> pl.DataFr
                                                 for pos in details['eligible_positions']]))
             p_dict['w'].append(int(stats['W']))
             p_dict['ga'].append(int(stats['GA']))
-            p_dict['gaa'].append(int(stats['GAA']))
+            p_dict['gaa'].append(float(stats['GAA']))
             p_dict['sv'].append(int(stats['SV']))
             p_dict['sa'].append(int(stats['SA']))
-            p_dict['sv%'].append(int(stats['SV%']))
+            p_dict['sv%'].append(float(stats['SV%']))
             p_dict['sho'].append(int(stats['SHO']))
             p_dict['term'].append(term)
 
