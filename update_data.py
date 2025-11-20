@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 
 import polars as pl
 import pyhockey as ph
@@ -97,9 +98,13 @@ def collect_goalie_stats(player_ids: list[str], league: yfa.League) -> pl.DataFr
 
     y_df = pl.DataFrame(p_dict)
 
-    # TODO add some stats from pyhockey
+    # Get advanced data from pyhockey to augment yahoo data
+    ph_df = pl.concat([get_advanced_goalie_data('week'),
+                       get_advanced_goalie_data('month'),
+                       get_advanced_goalie_data('season')])
 
-    df = y_df
+    df = y_df.join(ph_df, how='left', on=['name', 'team', 'term'])
+
     return df
 
 
@@ -155,14 +160,117 @@ def collect_skater_stats(player_ids: list[str], league: yfa.League) -> pl.DataFr
 
     y_df = pl.DataFrame(p_dict)
 
-    # TODO add some stats from pyhockey
+    # Get DF of advanced data from pyhockey to join in
+    ph_df = pl.concat([get_advanced_skater_data('week'),
+                       get_advanced_skater_data('month'),
+                       get_advanced_skater_data('season')])
 
-    df = y_df
+    df = y_df.join(ph_df, how='left', on=['name', 'team', 'term'])
+
     return df
 
 
-def compute_z_scores(df: pl.DataFrame, player_type: str) -> pl.DataFrame:
+def get_advanced_skater_data(term: str) -> pl.DataFrame:
+    """ Returns a DF of additional skater data from pyhockey
 
+    Args:
+        term (str): One of 'week', 'month', or 'season', the term over which to gather
+                    game data.
+
+    Raises:
+        ValueError: If an invalid term input is provided.
+
+    Returns:
+        pl.DataFrame: DF containing additional data to augment data provided by yahoo API.
+    """
+
+    today = datetime.now()
+    if term == 'season':
+        start_date = None
+    elif term == 'month':
+        start_date = datetime.strftime(today - timedelta(days=31), '%Y-%m-%d')
+    elif term == 'week':
+        start_date = datetime.strftime(today - timedelta(days=7), '%Y-%m-%d')
+    else:
+        raise ValueError('Incorrect term input provided, must be one of [season, month, week]')
+
+    df = ph.skater_games(season=today.year if today.month >= 10 else today.year - 1,
+                         start_date=start_date, quiet=True)
+
+    all_sit_df = df.filter(pl.col('situation') == 'all')\
+        .group_by(['name', 'position', 'team'])\
+        .agg(pl.col('individualxGoals').sum())
+
+    icetime_df = df.pivot('situation', index=['name', 'team', 'position', 'gameID'],
+                          values='iceTime')\
+        .group_by(['name', 'team', 'position'])\
+        .agg(pl.col('ev').mean(), pl.col('pp').mean())
+
+    output = all_sit_df.join(icetime_df, how='inner', on=['name', 'team', 'position'])
+
+    output = output.with_columns(
+        pl.lit(term).alias('term')
+    )
+
+    output = output.drop("position")
+
+    output = output.rename({
+        'individualxGoals': 'ixG',
+        'ev': 'EV ToI/g',
+        'pp': 'PP ToI/g'
+    })
+
+    return output
+
+
+def get_advanced_goalie_data(term: str) -> pl.DataFrame:
+    """ Returns a DF of additional goalie data from pyhockey
+
+    Args:
+        term (str): One of 'week', 'month', or 'season', the term over which to gather
+                    game data.
+
+    Raises:
+        ValueError: If an invalid term input is provided.
+
+    Returns:
+        pl.DataFrame: DF containing additional data to augment data provided by yahoo API.
+    """
+
+    today = datetime.now()
+    if term == 'season':
+        start_date = None
+    elif term == 'month':
+        start_date = datetime.strftime(today - timedelta(days=31), '%Y-%m-%d')
+    elif term == 'week':
+        start_date = datetime.strftime(today - timedelta(days=7), '%Y-%m-%d')
+    else:
+        raise ValueError('Incorrect term input provided, must be one of [season, month, week]')
+
+    df = ph.goalie_games(season=today.year if today.month >= 10 else today.year - 1,
+                         start_date=start_date, situation='all', quiet=True)
+
+    df = df.with_columns(
+        (pl.col('xGoalsAgainst') - pl.col('goalsAgainst')).alias('GSAX')
+    )
+
+    df = df.group_by(['name', 'team'])\
+        .agg(pl.col('GSAX').mean(), pl.col('xGoalsAgainst').mean(), pl.col('gameID').count())
+
+    output = df.rename({
+        'GSAX': 'GSAX/g',
+        'xGoalsAgainst': 'xGA/g',
+        'gameID': 'GP'
+    })
+
+    output = output.with_columns(
+        pl.lit(term).alias('term')
+    )
+
+    return output
+
+
+def compute_z_scores(df: pl.DataFrame, player_type: str) -> pl.DataFrame:
     """ Computes z-scores for each column in the DataFrame and returns one with an extra column
     for the average of these z-scores for each term.
 
