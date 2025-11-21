@@ -12,7 +12,7 @@ from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 st.set_page_config(layout='wide')
 
 ## Constants #########################################################################
-SKATER_POSITIONS = ['C', 'LW', 'RW', 'D', 'All Skaters']
+SKATER_POSITIONS = ['C', 'LW', 'RW', 'D', 'F', 'All Skaters']
 GOALIE_POSITIONS = ['G']
 ALL_POSITIONS = SKATER_POSITIONS + GOALIE_POSITIONS
 ACCENT = "teal"
@@ -120,7 +120,7 @@ st.markdown(
 )
 
 # Get two columns for our page
-l_column, r_column = st.columns([0.53, 0.47])
+l_column, r_column = st.columns([0.63, 0.37])
 
 # Add the position selector to left column...
 with l_column:
@@ -141,9 +141,9 @@ with r_column:
 # Load the correct CSV for chosen position
 if chosen_position in SKATER_POSITIONS:
     df = pl.read_csv("data/skater_data.csv")
-    # May arise if a player was just called up, their only position will be 'Util'
-    # Just put them as OF
-    if chosen_position != 'All Skaters':
+    if chosen_position == 'F':
+        df = df.filter(pl.col('Position(s)').str.contains('C|RW|LW'))
+    elif chosen_position != 'All Skaters':
         df = df.filter(pl.col('Position(s)').str.contains(chosen_position))
 
 elif chosen_position in GOALIE_POSITIONS:
@@ -163,10 +163,12 @@ table_df = table_df.sort(by=['on_team', 'Rank'], descending=[True, False]).head(
 
 if chosen_position in SKATER_POSITIONS:
     table_df = table_df[['Name', 'Team', 'Position(s)', 'G', 'A', '+/-', 'PPP', 'SOG', 'HITS',
-                         'Rank', 'on_team']]
+                         'Rank', 'ixG', 'EV ToI/g', 'PP ToI/g', 'on_team']]
 else:
     table_df = table_df[['Name', 'Team', 'Position(s)', 'W', 'GA', 'GAA', 'SV%', 'SHO', 'Rank',
-                         'on_team']]
+                         'GSAX/g', 'xGA/g', 'GP', 'on_team']]
+
+table_df = table_df.rename({'Position(s)': 'Pos.'})
 
 # Format names, e.g. Auston Matthews -> A. Matthews
 table_df = table_df.with_columns(
@@ -174,7 +176,8 @@ table_df = table_df.with_columns(
                                 return_dtype=pl.String)
 )
 
-small_cols = ['G', 'A', '+/-', 'PPP', 'SOG', 'HITS', 'Rank', 'W', 'GA', 'SHO']
+small_cols = ['G', 'A', '+/-', 'PPP', 'SOG', 'HITS', 'Rank', 'W', 'GA', 'SHO', 'ixG',
+              'EV ToI/g', 'PP ToI/g', 'GSAX/g', 'xGA/g', 'GP', 'Team', 'Pos.']
 
 # Define column options for each column we want to include
 columnDefs = [
@@ -182,7 +185,7 @@ columnDefs = [
     'field': col,
     'headerName': col,
     'type': 'rightAligned',
-    'width': 13 if col in small_cols else 40,
+    'width': 10 if col in small_cols else 40,
     'height': 20,
     'sortable': True,
     'sortingOrder': ['desc', 'asc', None]
@@ -191,13 +194,14 @@ columnDefs = [
 
 # Format the decimal numbers for certain metrics
 for colDef in columnDefs:
-    if colDef['field'] in {'GAA', 'SV%'}:
+    if colDef['field'] in {'GAA', 'SV%', 'ixG', 'EV ToI/g', 'PP ToI/g',
+                           'GSAX/g', 'xGA/g'}:
         colDef['type'] = ['numericColumn', 'customNumericFormat']
         colDef['precision'] = 2
 
 # Set the name column (always the first one) to be left-aligned
 columnDefs[0]['type'] = 'leftAligned'
-columnDefs[0]['width'] = 70
+columnDefs[0]['width'] = 60
 
 with l_column:
     # Define CSS rule to color the rows for every player on our team.
