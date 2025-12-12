@@ -79,7 +79,7 @@ def collect_goalie_stats(player_ids: list[str], league: yfa.League) -> pl.DataFr
                                   ['week', 'month', 'season']):
         for details, stats in zip(player_details, player_stats):
 
-            if stats['W'] == '-':
+            if stats['W'] == '-' or stats['GAA'] == '-':
                 continue
 
             p_dict['name'].append(unidecode(details['name']['full']))
