@@ -43,7 +43,7 @@ THRESHOLDS = {
 ## End Constants #####################################################################
 
 
-#@st.cache_data
+@st.cache_data
 def load_data(today: str) -> None:
     """
     Function to be run at the initialization of the dashboard.
@@ -70,7 +70,6 @@ def load_data(today: str) -> None:
     response = requests.request("GET", url, headers=headers, data=payload, timeout=10)
     response_body = json.loads(response.text)
 
-    print(response_body)
     for artifact in response_body['artifacts']:
         if artifact['name'] == 'nhl-dashboard-fa-data':
             print(artifact['created_at'])
