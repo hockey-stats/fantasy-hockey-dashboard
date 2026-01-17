@@ -1,5 +1,3 @@
-import logging
-
 import polars as pl
 import yahoo_fantasy_api as yfa
 

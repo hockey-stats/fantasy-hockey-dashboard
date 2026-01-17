@@ -8,6 +8,8 @@ import polars as pl
 import altair as alt
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 
+from get_matchup_data import main as get_matchup_data
+
 
 st.set_page_config(layout='wide')
 
@@ -122,6 +124,23 @@ st.markdown(
 # Get two columns for our page
 l_column, r_column = st.columns([0.95, 0.05])
 
+########################################################################################
+##  Begin Scoreboard ###################################################################
+########################################################################################
+
+sb_df = get_matchup_data()
+with l_column:
+    AgGrid(
+        sb_df,
+        height=93,
+        
+    )
+
+########################################################################################
+##  End Scoreboard #####################################################################
+########################################################################################
+
+
 # Add the position selector to left column...
 with l_column:
     chosen_position = st.selectbox(
@@ -151,6 +170,7 @@ elif chosen_position in GOALIE_POSITIONS:
     df = pl.read_csv("data/goalie_data.csv")
 
 
+
 ########################################################################################
 ##  Begin Table ########################################################################
 ########################################################################################
@@ -158,7 +178,7 @@ elif chosen_position in GOALIE_POSITIONS:
 term = chosen_term.split(' ')[-1].lower()
 table_df = df.filter(pl.col('term') == term)
 
-DISPLAY_NUMBER = 25 if 'All' in chosen_position else 15
+DISPLAY_NUMBER = 25 if chosen_position in {'All Skaters', 'F'} else 15
 
 table_df = table_df.sort(by=['on_team', 'Rank'], descending=[True, False]).head(DISPLAY_NUMBER)
 
