@@ -404,17 +404,30 @@ def filter_taken(df: pl.DataFrame, free_agents: list[int], my_team: list[int]) -
     return df
 
 
+def get_league_id(sc: OAuth2) -> str:
+    """Gets the ID of the desired fantasy league.
+
+    Args:
+        sc (OAuth2): The oauth session used to authenticate.
+
+    Returns:
+        str: The ID of the desired league.
+    """
+    game = yfa.Game(sc, 'nhl')
+    # Choose the league with the correct name
+    for league_id in game.league_ids():
+        if yfa.League(sc, league_id).__dict__['settings_cache']['name'] == LEAGUE_NAME:
+            return league_id
+
+
+
 def main() -> None:
     """ Pulls data from Yahoo API and pyhockey to generate CSVs to be used by dashboard. """
 
     session = create_session()
-    game = yfa.Game(session, 'nhl')
 
-    # Choose the league with the correct name
-    for league_id in game.league_ids():
-        if yfa.League(session, league_id).__dict__['settings_cache']['name'] == LEAGUE_NAME:
-            league = yfa.League(session, league_id)
-            break
+    league_id = get_league_id(session)
+    league = yfa.League(session, league_id)
 
     # Collect IDs for taken players
     taken = league.taken_players()

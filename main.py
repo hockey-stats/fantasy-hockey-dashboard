@@ -120,7 +120,7 @@ st.markdown(
 )
 
 # Get two columns for our page
-l_column, r_column = st.columns([0.63, 0.37])
+l_column, r_column = st.columns([0.95, 0.05])
 
 # Add the position selector to left column...
 with l_column:
@@ -130,7 +130,8 @@ with l_column:
     )
 
 # ... and term selector on the right
-with r_column:
+#with r_column:
+    # Gonna have it all on the left column for now until I decide what I want to do with the right
     chosen_term = st.radio(
         label="Chosen term:",
         options=['Last Week', 'Last Month', 'Full Season'],
