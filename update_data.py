@@ -387,11 +387,15 @@ def filter_taken(df: pl.DataFrame, free_agents: list[int], my_team: list[int]) -
         pl.DataFrame: DataFrame with taken players removed and 'on_team' column added.
     """
 
+    # TODO: Adapt function for getting players from my team to get players from every team.
+    # Iterate through every team here, calling function to get player_ids and then
+    # add column to DF for the team the player is on, or to be blank if FA.
+
     # Filter out players that are already taken
     df = df.filter(pl.col('id').is_in(free_agents + my_team))
 
     # Also filter out any injured players
-    df = df.filter(pl.col('positions').str.contains('IL').not_())
+    df = df.filter(pl.col('positions').str.contains('IR').not_())
 
     # Set 'on_team' to True if player is on my team, False otherwise
     df = df.with_columns(
@@ -442,9 +446,13 @@ def main() -> None:
     s_df = collect_skater_stats(skater_ids, league)
     g_df = collect_goalie_stats(goalie_ids, league)
 
+    pl.Config(tbl_cols=100)
+    print(s_df)
+
     # Get z-scores
     s_df = compute_z_scores(s_df, player_type='skaters')
     g_df = compute_z_scores(g_df, player_type='goalies')
+    print(s_df)
 
     # Compile list of all free agents to be included in final output
     skater_fas = [p['player_id'] for p in league.free_agents('P')]
