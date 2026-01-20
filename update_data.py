@@ -41,7 +41,7 @@ def create_session() -> OAuth2:
 
     :return OAuth2: Active OAuth2 session
     """
-    if not os.path.isfile('oath.json'):
+    if not os.path.isfile('oauth.json'):
         with open('oauth.json', 'w', encoding='utf-8') as f:
             f.write(os.environ['OAUTH_TOKEN'])
     sc = OAuth2(None, None, from_file='oauth.json')
