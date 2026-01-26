@@ -8,7 +8,7 @@ import polars as pl
 import altair as alt
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 
-from get_matchup_data import main as get_matchup_data
+from get_matchup_data import main as matchup_data
 
 
 st.set_page_config(layout='wide')
@@ -101,6 +101,14 @@ def load_data(today: str) -> None:
     print(os.listdir('data'))
 
     print(f"Data loaded for {artifact_creation_date}")
+
+
+
+@st.cache_data
+def get_matchup_data() -> pl.DataFrame():
+	"""Wrapper around function to use caching"""
+	df = matchup_data()
+	return df
 
 
 ########################################################################################
