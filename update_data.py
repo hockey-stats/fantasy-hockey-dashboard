@@ -418,10 +418,13 @@ def get_league_id(sc: OAuth2) -> str:
         str: The ID of the desired league.
     """
     game = yfa.Game(sc, 'nhl')
+    my_league = None
     # Choose the league with the correct name
     for league_id in game.league_ids():
         if yfa.League(sc, league_id).__dict__['settings_cache']['name'] == LEAGUE_NAME:
-            return league_id
+            my_league = league_id
+
+    return league_id
 
 
 
