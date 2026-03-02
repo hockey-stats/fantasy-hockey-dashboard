@@ -205,8 +205,8 @@ def get_advanced_skater_data(term: str) -> pl.DataFrame:
         .group_by(['name', 'position', 'team'])\
         .agg(pl.col('individualxGoals').sum())
 
-    icetime_df = df.pivot('situation', index=['name', 'team', 'position', 'gameID'],
-                          values='iceTime')\
+    icetime_df = df.pivot('situation', index=['name', 'team', 'position'],
+                          values='iceTime', aggregate_function='mean')\
         .group_by(['name', 'team', 'position'])\
         .agg(pl.col('ev').mean(), pl.col('pp').mean())
 
@@ -423,6 +423,7 @@ def get_league_id(sc: OAuth2) -> str:
     for league_id in game.league_ids():
         if yfa.League(sc, league_id).__dict__['settings_cache']['name'] == LEAGUE_NAME:
             my_league = league_id
+            break
 
     return league_id
 
