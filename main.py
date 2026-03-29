@@ -197,7 +197,7 @@ if chosen_position in SKATER_POSITIONS:
                           'Rank', 'on_team']]
 else:
     table_df = table_df[['Name', 'Team', 'Position(s)', 'W', 'GA', 'GAA', 'SV%', 'SHO', 'Rank',
-                         'GP', 'on_team']]
+                          'on_team']]
 
 table_df = table_df.rename({'Position(s)': 'Pos.'})
 
