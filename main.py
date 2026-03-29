@@ -136,13 +136,13 @@ l_column, r_column = st.columns([0.95, 0.05])
 ##  Begin Scoreboard ###################################################################
 ########################################################################################
 
-sb_df = get_matchup_data()
-with l_column:
-    AgGrid(
-        sb_df,
-        height=93,
-        
-    )
+#sb_df = get_matchup_data()
+#with l_column:
+#    AgGrid(
+#        sb_df,
+#        height=93,
+#        
+#    )
 
 ########################################################################################
 ##  End Scoreboard #####################################################################
@@ -191,11 +191,13 @@ DISPLAY_NUMBER = 25 if chosen_position in {'All Skaters', 'F'} else 15
 table_df = table_df.sort(by=['on_team', 'Rank'], descending=[True, False]).head(DISPLAY_NUMBER)
 
 if chosen_position in SKATER_POSITIONS:
+    #table_df = table_df[['Name', 'Team', 'Position(s)', 'G', 'A', '+/-', 'PPP', 'SOG', 'HITS',
+    #                     'Rank', 'ixG', 'EV ToI/g', 'PP ToI/g', 'on_team']]
     table_df = table_df[['Name', 'Team', 'Position(s)', 'G', 'A', '+/-', 'PPP', 'SOG', 'HITS',
-                         'Rank', 'ixG', 'EV ToI/g', 'PP ToI/g', 'on_team']]
+                          'Rank', 'on_team']]
 else:
     table_df = table_df[['Name', 'Team', 'Position(s)', 'W', 'GA', 'GAA', 'SV%', 'SHO', 'Rank',
-                         'GSAX/g', 'xGA/g', 'GP', 'on_team']]
+                         'GP', 'on_team']]
 
 table_df = table_df.rename({'Position(s)': 'Pos.'})
 

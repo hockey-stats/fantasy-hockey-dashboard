@@ -66,6 +66,7 @@ def get_my_matchup(league: yfa.League) -> dict[str: dict]:
 
     all_matchups = league.matchups()['fantasy_content']['league'][1]['scoreboard']['0']['matchups']
     for matchup in all_matchups.values():
+        #print('matchup:', matchup)
         teams = matchup['matchup']['0']['teams']
         a = teams['0']['team'][0]
         b = teams['1']['team'][0]
@@ -92,6 +93,7 @@ def main() -> pl.DataFrame:
     matchup = get_my_matchup(league)
 
     df = gather_stats(matchup)
+    print(df)
     return df
 
 
