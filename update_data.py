@@ -103,11 +103,12 @@ def collect_goalie_stats(player_ids: list[str], league: yfa.League) -> pl.DataFr
     y_df = pl.DataFrame(p_dict)
 
     # Get advanced data from pyhockey to augment yahoo data
-    ph_df = pl.concat([get_advanced_goalie_data('week'),
-                       get_advanced_goalie_data('month'),
-                       get_advanced_goalie_data('season')])
+    #ph_df = pl.concat([get_advanced_goalie_data('week'),
+    #                   get_advanced_goalie_data('month'),
+    #                   get_advanced_goalie_data('season')])
 
-    df = y_df.join(ph_df, how='left', on=['name', 'team', 'term'])
+    #df = y_df.join(ph_df, how='left', on=['name', 'team', 'term'])
+    df = y_df
 
     return df
 
@@ -165,11 +166,12 @@ def collect_skater_stats(player_ids: list[str], league: yfa.League) -> pl.DataFr
     y_df = pl.DataFrame(p_dict)
 
     # Get DF of advanced data from pyhockey to join in
-    ph_df = pl.concat([get_advanced_skater_data('week'),
-                       get_advanced_skater_data('month'),
-                       get_advanced_skater_data('season')])
+    #ph_df = pl.concat([get_advanced_skater_data('week'),
+    #                   get_advanced_skater_data('month'),
+    #                   get_advanced_skater_data('season')])
 
-    df = y_df.join(ph_df, how='left', on=['name', 'team', 'term'])
+    #df = y_df.join(ph_df, how='left', on=['name', 'team', 'term'])
+    df = y_df
 
     return df
 
