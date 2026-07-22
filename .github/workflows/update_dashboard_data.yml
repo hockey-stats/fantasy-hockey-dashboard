@@ -18,13 +18,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       #
-      - name: Decrypt oauth key
+      - name: Create oauth.json
         env:
-          SECRET_PASSPHRASE: ${{ secrets.YAHOO_OAUTH_DECRYPT_KEY }}
-        run: |
-          gpg --quiet --batch --yes --decrypt --passphrase="$SECRET_PASSPHRASE" \
-          --output ./oauth.json oauth.json.gpg;
-          ls
+          OAUTH_JSON: ${{ secrets.YAHOO_OAUTH_JSON }}
+        run: echo "$OAUTH_JSON" > oauth.json
       #
       - name: Setup Python
         uses: actions/setup-python@v4
