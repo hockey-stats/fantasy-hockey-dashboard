@@ -1,9 +1,19 @@
 import os
 import json
+import runpy
 import zipfile
 from datetime import datetime, timedelta
+from pathlib import Path
 import requests
 import streamlit as st
+
+# Temporary: while the pyhockey data feed is down, serve the Yahoo-only dashboard instead.
+# Set to False to go back to this dashboard.
+USE_YAHOO_ONLY = True
+if USE_YAHOO_ONLY:
+    runpy.run_path(str(Path(__file__).parent / 'main_yahoo.py'))
+    st.stop()
+
 import polars as pl
 import altair as alt
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode

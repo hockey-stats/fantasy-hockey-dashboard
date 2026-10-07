@@ -209,3 +209,4 @@ __marimo__/
 .python-version
 *csv
 oauth.json
+oauth.json.bak-*

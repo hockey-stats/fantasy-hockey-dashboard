@@ -420,19 +420,25 @@ def get_league_id(sc: OAuth2) -> str:
         str: The ID of the desired league.
     """
     game = yfa.Game(sc, 'nhl')
-    my_league = None
-    # Choose the league with the correct name
+    # league_ids() returns leagues for every sport and season. League keys are prefixed with
+    # the game ID, which is unique to each season, so only consider this season's NHL leagues.
+    prefix = f"{game.game_id()}.l."
     for league_id in game.league_ids():
-        if yfa.League(sc, league_id).__dict__['settings_cache']['name'] == LEAGUE_NAME:
-            my_league = league_id
-            break
+        if not league_id.startswith(prefix):
+            continue
+        if yfa.League(sc, league_id).settings()['name'] == LEAGUE_NAME:
+            return league_id
 
-    return league_id
+    raise ValueError(f"League '{LEAGUE_NAME}' not found for the current season")
 
 
 
-def main() -> None:
-    """ Pulls data from Yahoo API and pyhockey to generate CSVs to be used by dashboard. """
+def build_free_agent_data() -> tuple[pl.DataFrame, pl.DataFrame]:
+    """ Pulls data from Yahoo API and builds the skater and goalie tables used by the dashboard.
+
+    Returns:
+        tuple[pl.DataFrame, pl.DataFrame]: Skater and goalie DataFrames, in that order.
+    """
 
     session = create_session()
 
@@ -497,6 +503,14 @@ def main() -> None:
         'sho': 'SHO'
     })
     goalie_df.drop('id')
+
+    return skater_df, goalie_df
+
+
+def main() -> None:
+    """ Pulls data from Yahoo API to generate CSVs to be used by dashboard. """
+
+    skater_df, goalie_df = build_free_agent_data()
 
     # Save output
     skater_df.write_csv('skater_data.csv')
